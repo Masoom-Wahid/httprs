@@ -132,7 +132,7 @@ impl HttpRs{
         info!("{} => {} {}",stream.local_addr()?,_method,path);
 
 
-        
+
         if path.len() != 1 && path.ends_with("/"){
             path = path.strip_suffix("/").unwrap_or(path);
         }
@@ -170,12 +170,21 @@ impl HttpRs{
             }else{
                 match fs::read(new_request_path.as_path()) {
                     Ok(content) => {
-                        let content_type = if self.is_image(path) {
-                            "image/jpeg"
-                        } else {
-                            // "application/download"
-                            "text/html"
+                        let content_type = {
+                            if self.is_image(path){
+                                "image/png"
+                            }else if path.ends_with(".css") {
+                                "text/css"
+                            }else{
+                                "text/html"
+                            }
                         };
+                        // let content_type = if self.is_image(path) {
+                        //     "image/jpeg"
+                        // } else {
+                        //     // "application/download"
+                        //     "text/html"
+                        // };
             
                         let header = format!(
                             "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
