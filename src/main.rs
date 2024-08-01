@@ -6,6 +6,7 @@ use std::{io, time::SystemTime};
 
 /*
     TODO: Things to add  ->:
+        dynamic path meaning the path could be given from --path
         paths of dirs which have a space in their name does not work
         add an option for no_index.html which when / is called instead of the default index.html it shows the dir of .
           Other Methods Support
@@ -28,7 +29,7 @@ struct Args {
     #[arg(short, long, default_value_t = 0)]
     verbose: u64,
 
-    #[arg(short, default_value_t = false)]
+    #[arg(short, long, default_value_t = false)]
     log: bool,
 }
 
