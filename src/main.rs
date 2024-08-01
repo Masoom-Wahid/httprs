@@ -1,34 +1,32 @@
 use anyhow::Result;
 use clap::Parser;
 use fern;
-use std::{io, time::SystemTime};
 use httprs::core::httprs::HttpRs;
+use std::{io, time::SystemTime};
 
 /*
     TODO: Things to add  ->:
+          add an option for no_index.html which when / is called instead of the default index.html it shows the dir of .
           Other Methods Support
           more than 1024 bytes for buffer of the request or even a dynamic allocator based on the buffer
           see if u can write TcpListener uself
-          and TcpStrea
-          
+          and TcpStream
+
 
 */
 
-
-
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct Args{
-    #[arg(long,default_value="127.0.0.1")]
-    host : String,
+struct Args {
+    #[arg(long, default_value = "127.0.0.1")]
+    host: String,
 
-    #[arg(long,default_value="8080")]
-    port : String,
+    #[arg(long, default_value = "8080")]
+    port: String,
 
-    #[arg(short,long,default_value_t=0)]
-    verbose : u64
+    #[arg(short, long, default_value_t = 0)]
+    verbose: u64,
 }
-
 
 fn setup_logging(verbosity: u64) -> Result<(), fern::InitError> {
     let mut base_config = fern::Dispatch::new();
@@ -73,10 +71,9 @@ fn setup_logging(verbosity: u64) -> Result<(), fern::InitError> {
                 ))
             } else {
                 out.finish(format_args!(
-                    "[{} {} {}] {}",
+                    "[{} {}] {}",
                     humantime::format_rfc3339_seconds(SystemTime::now()),
                     record.level(),
-                    record.target(),
                     message
                 ))
             }
@@ -91,27 +88,17 @@ fn setup_logging(verbosity: u64) -> Result<(), fern::InitError> {
     Ok(())
 }
 
-
-
-
 fn main() -> Result<()> {
-
     let args = Args::parse();
-    
-    let host : &str = &args.host;
-    let port : &str = &args.port;
+
+    let host: &str = &args.host;
+    let port: &str = &args.port;
 
     setup_logging(args.verbose).expect("Failed To Initialzie logger");
 
-    let server : HttpRs = HttpRs::new(host,port);
+    let server: HttpRs = HttpRs::new(host, port);
 
     server.serve()?;
 
     Ok(())
 }
-
-
-
-
-
-
