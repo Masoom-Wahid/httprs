@@ -6,7 +6,8 @@ use std::{io, time::SystemTime};
 
 /*
     TODO: Things to add  ->:
-          add an option for no_index.html which when / is called instead of the default index.html it shows the dir of .
+        paths of dirs which have a space in their name does not work
+        add an option for no_index.html which when / is called instead of the default index.html it shows the dir of .
           Other Methods Support
           more than 1024 bytes for buffer of the request or even a dynamic allocator based on the buffer
           see if u can write TcpListener uself
@@ -26,9 +27,12 @@ struct Args {
 
     #[arg(short, long, default_value_t = 0)]
     verbose: u64,
+
+    #[arg(short, default_value_t = false)]
+    log: bool,
 }
 
-fn setup_logging(verbosity: u64) -> Result<(), fern::InitError> {
+fn setup_logging(verbosity: u64, log: bool) -> Result<(), fern::InitError> {
     let mut base_config = fern::Dispatch::new();
 
     base_config = match verbosity {
@@ -48,18 +52,6 @@ fn setup_logging(verbosity: u64) -> Result<(), fern::InitError> {
     };
 
     // Separate file config so we can include year, month and day in file logs
-    let file_config = fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "[{} {} {}] {}",
-                humantime::format_rfc3339_seconds(SystemTime::now()),
-                record.level(),
-                record.target(),
-                message
-            ))
-        })
-        .chain(fern::log_file("out.log")?);
-
     let stdout_config = fern::Dispatch::new()
         .format(|out, message, record| {
             // special format for debug messages coming from our own crate.
@@ -80,10 +72,26 @@ fn setup_logging(verbosity: u64) -> Result<(), fern::InitError> {
         })
         .chain(io::stdout());
 
-    base_config
-        .chain(file_config)
-        .chain(stdout_config)
-        .apply()?;
+    if log {
+        let file_config = fern::Dispatch::new()
+            .format(|out, message, record| {
+                out.finish(format_args!(
+                    "[{} {} {}] {}",
+                    humantime::format_rfc3339_seconds(SystemTime::now()),
+                    record.level(),
+                    record.target(),
+                    message
+                ))
+            })
+            .chain(fern::log_file("out.log")?);
+
+        base_config
+            .chain(file_config)
+            .chain(stdout_config)
+            .apply()?;
+    } else {
+        base_config.chain(stdout_config).apply()?;
+    }
 
     Ok(())
 }
@@ -94,7 +102,7 @@ fn main() -> Result<()> {
     let host: &str = &args.host;
     let port: &str = &args.port;
 
-    setup_logging(args.verbose).expect("Failed To Initialzie logger");
+    setup_logging(args.verbose, args.log).expect("Failed To Initialzie logger");
 
     let server: HttpRs = HttpRs::new(host, port);
 

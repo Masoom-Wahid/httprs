@@ -1,5 +1,8 @@
 use anyhow::Result;
 use log::{debug, info};
+use mime_guess;
+use mime_guess::mime;
+use mime_guess::Mime;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
@@ -154,6 +157,13 @@ impl HttpRs {
         result
     }
 
+    fn get_content_type(&self, path: &std::path::Path) -> String {
+        match mime_guess::from_path(path).first() {
+            Some(p) => p.to_string(),
+            None => "text/html".to_string(),
+        }
+    }
+
     fn is_image(&self, path: &str) -> bool {
         let extensions: [&str; 7] = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "ico"];
         let path = path.to_lowercase();
@@ -228,21 +238,8 @@ impl HttpRs {
             } else {
                 match fs::read(new_request_path.as_path()) {
                     Ok(content) => {
-                        let content_type = {
-                            if self.is_image(path) {
-                                "image/png"
-                            } else if path.ends_with(".css") {
-                                "text/css"
-                            } else {
-                                "text/html"
-                            }
-                        };
-                        // let content_type = if self.is_image(path) {
-                        //     "image/jpeg"
-                        // } else {
-                        //     // "application/download"
-                        //     "text/html"
-                        // };
+                        let content_type: String =
+                            self.get_content_type(new_request_path.as_path());
 
                         let header = format!(
                             "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
