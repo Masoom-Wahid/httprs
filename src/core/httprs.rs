@@ -4,8 +4,7 @@ use std::net::TcpStream;
 use std::path::PathBuf;
 use std::{env, fs};
 use anyhow::Result;
-use clap::Parser;
-use log::{debug, info, trace, warn};
+use log::{debug, info};
 
 
 
@@ -49,7 +48,7 @@ impl HttpRs{
                     ));
                 }
                 Err(e) => {
-                    eprintln!("Error reading directory entry: {:?}", e);
+                    debug!("Error reading directory entry: {:?}", e);
                     // Handle the error (could append an error message to HTML if needed)
                 }
             }
@@ -91,7 +90,7 @@ impl HttpRs{
     
     fn is_image(&self,path : &str) -> bool{
         let extensions : [&str ; 7] = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "ico"];
-        path.to_lowercase();
+        let path = path.to_lowercase();
         for extension in extensions {
             if path.ends_with(extension) {
                 return true;
@@ -106,11 +105,11 @@ impl HttpRs{
         stream.read(&mut buffer)?;
     
         let request = String::from_utf8_lossy(&buffer[..]);
-        println!("Request : {}", request);
+        debug!("Request : {}", request);
     
         let values: Vec<&str> = request.split("\n").collect(); 
         let method_info: Vec<&str> = values[0].split(" ").collect();
-        let method = method_info[0];
+        let _method = method_info[0];
         let uri = {
             if method_info.len() == 1{
                 "/"
@@ -118,8 +117,10 @@ impl HttpRs{
                 method_info[1]
             }
         };
+
+
         // let uri = method_info[1];
-    
+        
         
         
         let mut path = match uri {
@@ -128,11 +129,15 @@ impl HttpRs{
             // _ => uri.strip_prefix("/").unwrap_or(uri),
         };
         
+        info!("{} => {} {}",stream.local_addr()?,_method,path);
+
+
+        
         if path.len() != 1 && path.ends_with("/"){
             path = path.strip_suffix("/").unwrap_or(path);
         }
     
-        println!("Your Path is {path}");
+        debug!("Your Path is {path}");
     
         let binding = env::current_dir()?;
         let curr_dir = binding.to_str().unwrap();
@@ -142,9 +147,9 @@ impl HttpRs{
     
         let this = new_request_path.is_dir();
     
-        println!("Is Dir {this}");
+        debug!("Is Dir {this}");
         
-        println!("new_request_path {:?}",new_request_path);
+        debug!("new_request_path {:?}",new_request_path);
     
         let response = {
             if path != "/"  && new_request_path.is_dir(){
@@ -185,7 +190,7 @@ impl HttpRs{
                     },
                     Err(e) => {
                         let not_found_page = self.get_404_page();
-                        println!("{:?}", e);
+                        debug!("{:?}", e);
                         let header = format!(
                             "HTTP/1.1 404 NOT FOUND\r\nContent-Length: {}\r\nContent-Type: text/html\r\n\r\n",
                             not_found_page.len()
@@ -218,7 +223,6 @@ impl HttpRs{
         
         for stream in listener.incoming(){
             let _stream = stream?;
-            println!("connection established from {}",_stream.local_addr()?);
             self.handle_connection(_stream)?;
         }
 
