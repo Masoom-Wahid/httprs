@@ -1,3 +1,4 @@
+![image](https://github.com/user-attachments/assets/eaa6cb55-7584-43d0-bade-17fdf78176f8)
 # httprs
 A simple http server written in rust
 
