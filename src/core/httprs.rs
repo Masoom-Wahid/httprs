@@ -7,6 +7,7 @@ use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use std::path::PathBuf;
+use std::time::SystemTime;
 
 pub struct HttpRs {
     host: String,
@@ -64,6 +65,33 @@ impl HttpRs {
         self.parse_tcp_data(data[0])
     }
 
+    fn get_headers(
+        &self,
+        content_len: usize,
+        content_type: &str,
+        status_code: u32,
+        status: &str,
+    ) -> String {
+        format!(
+            "HTTP/1.1 {} {}r\nContent-Length: {}\r\nContent-Type: {}\r\nDate: {}\r\nX-Powered-By: {}\r\nX-Custom-Header: {}\r\nServer: {}\r\n\r\n\r\n",
+            status_code,
+            status,
+            content_len,
+            content_type,
+            humantime::format_rfc3339_seconds(SystemTime::now()),
+            "RUST",
+            "NITEIP",
+            "HttpRs/1.0"
+        )
+    }
+
+    fn get_response(&self, headers: &[u8], content: &[u8]) -> Vec<u8> {
+        let mut response: Vec<u8> = Vec::new();
+        response.extend_from_slice(headers);
+        response.extend_from_slice(&content);
+        response
+    }
+
     fn handle_connection(&self, mut stream: TcpStream) -> Result<()> {
         let mut buffer = [0; 1024];
         stream.read(&mut buffer)?;
@@ -96,38 +124,20 @@ impl HttpRs {
 
         debug!("new_request_path {:?}", new_request_path);
 
-        let response = {
+        let response: Vec<u8> = {
             if path != "/" && new_request_path.is_dir() {
                 let data = fs::read_dir(new_request_path.as_path())?;
                 let content = get_html_for_dir(data, &path);
-                let content_type = "text/html";
-
-                let header = format!(
-                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
-                    content.len(),
-                    content_type
-                );
-
-                let mut dir_response: Vec<u8> = Vec::new();
-                dir_response.extend_from_slice(header.as_bytes());
-                dir_response.extend_from_slice(&content.as_bytes());
-                dir_response
+                let headers = self.get_headers(content.len(), "text/html", 200, "OK");
+                self.get_response(headers.as_bytes(), &content.as_bytes())
             } else {
                 match fs::read(new_request_path.as_path()) {
                     Ok(content) => {
                         let content_type: String =
                             self.get_content_type(new_request_path.as_path());
-
-                        let header = format!(
-                            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
-                            content.len(),
-                            content_type
-                        );
-
-                        let mut response = Vec::new();
-                        response.extend_from_slice(header.as_bytes());
-                        response.extend_from_slice(&content);
-                        response
+                        let headers =
+                            self.get_headers(content.len(), content_type.as_str(), 200, "OK");
+                        self.get_response(headers.as_bytes(), &content)
                     }
                     Err(e) => {
                         if path == "/index.html" {
@@ -141,28 +151,21 @@ impl HttpRs {
                                 }
                             };
 
-                            let header = format!(
-                                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
-                                boiler_page.len(),
-                                "text/html"
-                            );
+                            let headers =
+                                self.get_headers(boiler_page.len(), "text/html", 200, "OK");
 
-                            let mut response: Vec<u8> = Vec::new();
-                            response.extend_from_slice(header.as_bytes());
-                            response.extend_from_slice(&boiler_page);
-                            response
+                            self.get_response(headers.as_bytes(), &boiler_page)
                         } else {
                             let not_found_page = get_404_page();
                             debug!("{:?}", e);
-                            let header = format!(
-                                "HTTP/1.1 404 NOT FOUND\r\nContent-Length: {}\r\nContent-Type: text/html\r\n\r\n",
-                                not_found_page.len()
-                            );
 
-                            let mut response = Vec::new();
-                            response.extend_from_slice(header.as_bytes());
-                            response.extend_from_slice(not_found_page.as_bytes());
-                            response
+                            let headers = self.get_headers(
+                                not_found_page.len(),
+                                "text/html",
+                                404,
+                                "NOT FOUND",
+                            );
+                            self.get_response(headers.as_bytes(), not_found_page.as_bytes())
                         }
                     }
                 }
