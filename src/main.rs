@@ -31,6 +31,12 @@ struct Args {
 
     #[arg(short, long, default_value_t = false)]
     log: bool,
+
+    #[arg(short, long, default_value = ".")]
+    path: String,
+
+    #[arg(short, long, default_value_t = false)]
+    no_index_html: bool,
 }
 
 fn setup_logging(verbosity: u64, log: bool) -> Result<(), fern::InitError> {
@@ -105,7 +111,7 @@ fn main() -> Result<()> {
 
     setup_logging(args.verbose, args.log).expect("Failed To Initialzie logger");
 
-    let server: HttpRs = HttpRs::new(host, port);
+    let server: HttpRs = HttpRs::new(host, port, args.path.as_str(), args.no_index_html);
 
     server.serve()?;
 

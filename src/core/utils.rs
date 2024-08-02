@@ -1,3 +1,5 @@
+use log::debug;
+use std::env;
 pub fn get_404_page() -> String {
     let result: String = r#"
         <!DOCTYPE html>
@@ -100,4 +102,39 @@ pub fn get_index_html() -> String {
             "#
     .to_string();
     return result;
+}
+
+pub fn get_html_for_dir(dir: std::fs::ReadDir, abs_path: &str) -> String {
+    let mut html = String::from("<html><body><h1>Directory Listing</h1><ul>");
+
+    for entry in dir {
+        match entry {
+            Ok(entry) => {
+                let path = entry.path();
+                let file_name = path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_str()
+                    .unwrap_or_default()
+                    .to_string();
+                let href_path = abs_path.to_string() + "/" + &file_name;
+                html.push_str(&format!(
+                    "<li><a href=\"{}/\">{}</a></li>",
+                    href_path, file_name
+                ));
+            }
+            Err(e) => {
+                debug!("Error reading directory entry: {:?}", e);
+            }
+        }
+    }
+
+    html.push_str("</ul></body></html>");
+    html
+}
+
+pub fn get_curr_dir() -> String {
+    let curr_dir_path_buf =
+        env::current_dir().expect("Could not read the curr_dir for some reason , god knows why");
+    curr_dir_path_buf.to_string_lossy().to_string()
 }

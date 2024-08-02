@@ -1,6 +1,5 @@
-use crate::core::utils::{get_404_page, get_index_html};
+use crate::core::utils::{get_404_page, get_curr_dir, get_html_for_dir, get_index_html};
 use anyhow::Result;
-use log::warn;
 use log::{debug, info};
 use mime_guess;
 use std::io::prelude::*;
@@ -13,47 +12,25 @@ pub struct HttpRs {
     host: String,
     port: String,
     curr_dir: String,
+    no_index_html: bool,
 }
 
 impl HttpRs {
-    pub fn new(host: &str, port: &str) -> Self {
-        let curr_dir_path_buf = env::current_dir()
-            .expect("could not read the curr_dir for some reason , god knows why");
-        let curr_dir = curr_dir_path_buf.to_string_lossy().to_string();
+    pub fn new(host: &str, port: &str, path: &str, no_index_html: bool) -> Self {
+        let curr_dir: String = {
+            if path == "." {
+                get_curr_dir()
+            } else {
+                path.to_string()
+            }
+        };
+
         Self {
             host: host.to_string(),
             port: port.to_string(),
             curr_dir,
+            no_index_html,
         }
-    }
-
-    fn get_html_for_dir(&self, dir: std::fs::ReadDir, abs_path: &str) -> String {
-        let mut html = String::from("<html><body><h1>Directory Listing</h1><ul>");
-
-        for entry in dir {
-            match entry {
-                Ok(entry) => {
-                    let path = entry.path();
-                    let file_name = path
-                        .file_name()
-                        .unwrap_or_default()
-                        .to_str()
-                        .unwrap_or_default()
-                        .to_string();
-                    let href_path = abs_path.to_string() + "/" + &file_name;
-                    html.push_str(&format!(
-                        "<li><a href=\"{}/\">{}</a></li>",
-                        href_path, file_name
-                    ));
-                }
-                Err(e) => {
-                    debug!("Error reading directory entry: {:?}", e);
-                }
-            }
-        }
-
-        html.push_str("</ul></body></html>");
-        html
     }
 
     fn get_content_type(&self, path: &std::path::Path) -> String {
@@ -122,7 +99,7 @@ impl HttpRs {
         let response = {
             if path != "/" && new_request_path.is_dir() {
                 let data = fs::read_dir(new_request_path.as_path())?;
-                let content = self.get_html_for_dir(data, &path);
+                let content = get_html_for_dir(data, &path);
                 let content_type = "text/html";
 
                 let header = format!(
@@ -154,8 +131,16 @@ impl HttpRs {
                     }
                     Err(e) => {
                         if path == "/index.html" {
-                            debug!("here with index.html testing");
-                            let boiler_page = get_index_html().as_bytes().to_vec();
+                            let boiler_page = {
+                                if !self.no_index_html {
+                                    get_index_html().as_bytes().to_vec()
+                                } else {
+                                    get_html_for_dir(fs::read_dir(&self.curr_dir)?, "")
+                                        .as_bytes()
+                                        .to_vec()
+                                }
+                            };
+
                             let header = format!(
                                 "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
                                 boiler_page.len(),
