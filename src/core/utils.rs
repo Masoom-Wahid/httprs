@@ -1,5 +1,9 @@
+use colored::*;
 use log::debug;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::env;
+
 pub fn get_404_page() -> String {
     let result: String = r#"
         <!DOCTYPE html>
@@ -137,4 +141,260 @@ pub fn get_curr_dir() -> String {
     let curr_dir_path_buf =
         env::current_dir().expect("Could not read the curr_dir for some reason , god knows why");
     curr_dir_path_buf.to_string_lossy().to_string()
+}
+
+pub fn print_http_rs_ascii() -> () {
+    let http_rs: String = r#"
+    _    _ _   _         _____
+    | |  | | | | |       |  __ \
+    | |__| | |_| |_ _ __ | |__) |___
+    |  __  | __| __| '_ \|  _  // __|
+    | |  | | |_| |_| |_) | | \ \\__ \
+    |_|  |_|\__|\__| .__/|_|  \_\___/
+                | |
+                |_|
+    "#
+    .to_string();
+
+    let mut colors = [
+        Color::TrueColor {
+            r: 66,
+            g: 64,
+            b: 149,
+        },
+        Color::TrueColor {
+            r: 72,
+            g: 61,
+            b: 139,
+        },
+        Color::TrueColor {
+            r: 123,
+            g: 104,
+            b: 238,
+        },
+        Color::TrueColor {
+            r: 65,
+            g: 105,
+            b: 225,
+        },
+        Color::TrueColor {
+            r: 100,
+            g: 149,
+            b: 237,
+        },
+        Color::TrueColor { r: 0, g: 0, b: 255 },
+        Color::TrueColor {
+            r: 30,
+            g: 144,
+            b: 255,
+        },
+        Color::TrueColor {
+            r: 0,
+            g: 191,
+            b: 255,
+        },
+        Color::TrueColor {
+            r: 135,
+            g: 206,
+            b: 250,
+        },
+        Color::TrueColor {
+            r: 173,
+            g: 216,
+            b: 230,
+        },
+        Color::TrueColor {
+            r: 72,
+            g: 61,
+            b: 139,
+        },
+        Color::TrueColor {
+            r: 0,
+            g: 128,
+            b: 128,
+        },
+        Color::TrueColor {
+            r: 0,
+            g: 139,
+            b: 139,
+        },
+        Color::TrueColor {
+            r: 0,
+            g: 255,
+            b: 255,
+        },
+        Color::TrueColor {
+            r: 0,
+            g: 206,
+            b: 209,
+        },
+        Color::TrueColor {
+            r: 32,
+            g: 178,
+            b: 170,
+        },
+        Color::TrueColor {
+            r: 0,
+            g: 250,
+            b: 154,
+        },
+        Color::TrueColor {
+            r: 127,
+            g: 255,
+            b: 212,
+        },
+        Color::TrueColor {
+            r: 72,
+            g: 209,
+            b: 204,
+        },
+        Color::TrueColor {
+            r: 64,
+            g: 224,
+            b: 208,
+        },
+        Color::TrueColor {
+            r: 0,
+            g: 255,
+            b: 127,
+        },
+        Color::TrueColor {
+            r: 50,
+            g: 205,
+            b: 50,
+        },
+        Color::TrueColor {
+            r: 144,
+            g: 238,
+            b: 144,
+        },
+        Color::TrueColor {
+            r: 34,
+            g: 139,
+            b: 34,
+        },
+        Color::TrueColor { r: 0, g: 255, b: 0 },
+        Color::TrueColor { r: 0, g: 128, b: 0 },
+        Color::TrueColor {
+            r: 85,
+            g: 107,
+            b: 47,
+        },
+        Color::TrueColor {
+            r: 154,
+            g: 205,
+            b: 50,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 255,
+            b: 0,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 215,
+            b: 0,
+        },
+        Color::TrueColor {
+            r: 218,
+            g: 165,
+            b: 32,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 165,
+            b: 0,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 140,
+            b: 0,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 69,
+            b: 0,
+        },
+        Color::TrueColor { r: 255, g: 0, b: 0 },
+        Color::TrueColor {
+            r: 220,
+            g: 20,
+            b: 60,
+        },
+        Color::TrueColor {
+            r: 178,
+            g: 34,
+            b: 34,
+        },
+        Color::TrueColor { r: 139, g: 0, b: 0 },
+        Color::TrueColor {
+            r: 255,
+            g: 20,
+            b: 147,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 105,
+            b: 180,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 182,
+            b: 193,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 192,
+            b: 203,
+        },
+        Color::TrueColor {
+            r: 219,
+            g: 112,
+            b: 147,
+        },
+        Color::TrueColor {
+            r: 199,
+            g: 21,
+            b: 133,
+        },
+        Color::TrueColor {
+            r: 255,
+            g: 0,
+            b: 255,
+        },
+        Color::TrueColor {
+            r: 238,
+            g: 130,
+            b: 238,
+        },
+        Color::TrueColor {
+            r: 221,
+            g: 160,
+            b: 221,
+        },
+        Color::TrueColor {
+            r: 218,
+            g: 112,
+            b: 214,
+        },
+        Color::TrueColor {
+            r: 186,
+            g: 85,
+            b: 211,
+        },
+        Color::TrueColor {
+            r: 153,
+            g: 50,
+            b: 204,
+        },
+    ];
+    let mut rng = thread_rng();
+    colors.shuffle(&mut rng);
+
+    let lines: Vec<&str> = http_rs.lines().collect();
+    let choosen_color: &Color = colors.choose(&mut rng).unwrap_or(&colors[0]);
+    for (_, line) in lines.iter().enumerate() {
+        let colored_line = line.color(*choosen_color);
+        println!("{}", colored_line);
+    }
 }

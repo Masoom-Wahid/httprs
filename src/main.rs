@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 use fern;
-use httprs::core::httprs::HttpRs;
+use httprs::core::{httprs::HttpRs, utils::print_http_rs_ascii};
 use std::{io, time::SystemTime};
 
 /*
@@ -101,6 +101,8 @@ fn main() -> Result<()> {
     let port: &str = &args.port;
 
     setup_logging(args.verbose, args.log).expect("Failed To Initialzie logger");
+
+    print_http_rs_ascii();
 
     let server: HttpRs = HttpRs::new(host, port, args.path.as_str(), args.no_index_html);
 

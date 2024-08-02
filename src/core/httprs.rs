@@ -2,11 +2,11 @@ use crate::core::utils::{get_404_page, get_curr_dir, get_html_for_dir, get_index
 use anyhow::Result;
 use log::{debug, info};
 use mime_guess;
+use std::fs;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use std::path::PathBuf;
-use std::{env, fs};
 
 pub struct HttpRs {
     host: String,
