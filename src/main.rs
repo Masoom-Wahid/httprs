@@ -6,9 +6,7 @@ use std::{io, time::SystemTime};
 
 /*
     TODO: Things to add  ->:
-        dynamic path meaning the path could be given from --path
         paths of dirs which have a space in their name does not work
-        add an option for no_index.html which when / is called instead of the default index.html it shows the dir of .
           Other Methods Support
           more than 1024 bytes for buffer of the request or even a dynamic allocator based on the buffer
           see if u can write TcpListener uself
@@ -43,14 +41,9 @@ fn setup_logging(verbosity: u64, log: bool) -> Result<(), fern::InitError> {
     let mut base_config = fern::Dispatch::new();
 
     base_config = match verbosity {
-        0 => {
-            // Let's say we depend on something which whose "info" level messages are too
-            // verbose to include in end-user output. If we don't need them,
-            // let's not include them.
-            base_config
-                .level(log::LevelFilter::Info)
-                .level_for("overly-verbose-target", log::LevelFilter::Warn)
-        }
+        0 => base_config
+            .level(log::LevelFilter::Info)
+            .level_for("overly-verbose-target", log::LevelFilter::Warn),
         1 => base_config
             .level(log::LevelFilter::Debug)
             .level_for("overly-verbose-target", log::LevelFilter::Info),
@@ -58,10 +51,8 @@ fn setup_logging(verbosity: u64, log: bool) -> Result<(), fern::InitError> {
         _3_or_more => base_config.level(log::LevelFilter::Trace),
     };
 
-    // Separate file config so we can include year, month and day in file logs
     let stdout_config = fern::Dispatch::new()
         .format(|out, message, record| {
-            // special format for debug messages coming from our own crate.
             if record.level() > log::LevelFilter::Info {
                 out.finish(format_args!(
                     "DEBUG @ {}: {}",
