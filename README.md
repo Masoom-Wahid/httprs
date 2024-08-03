@@ -12,6 +12,7 @@ curl -L https://github.com/Masoom-Wahid/httprs/releases/download/0.1.0/install.s
 
 <hr>
 # Usage
+<hr>
 ### Usage: httprs [OPTIONS]
 
 ### Options:
