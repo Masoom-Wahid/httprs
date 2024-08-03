@@ -1,7 +1,16 @@
 ![image](https://github.com/user-attachments/assets/eaa6cb55-7584-43d0-bade-17fdf78176f8)
+
 # httprs
 A simple http server written in rust
 
+<hr>
+
+### How To Setup?
+```shell
+curl -L https://github.com/Masoom-Wahid/httprs/releases/download/0.1.0/install.sh | sh
+```
+
+<hr>
 # Usage
 ### Usage: httprs [OPTIONS]
 
